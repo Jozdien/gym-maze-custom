@@ -15,6 +15,8 @@ class MazeView2D:
         pygame.display.set_caption(maze_name)
         self.clock = pygame.time.Clock()
         self.__game_over = False
+        self.has_loops = has_loops
+        self.num_portals = num_portals
         self.__enable_render = enable_render
 
         # Load a maze
@@ -69,6 +71,12 @@ class MazeView2D:
             # show the goal
             self.__draw_goal()
 
+        # Create the object at the center of the maze
+        self.__object = np.random.randint(0, high=self.maze_size, size=2)
+        if self.__enable_render is True:
+            # show the object
+            self.__draw_object()
+
     def update(self, mode="human"):
         try:
             img_output = self.__view_update(mode)
@@ -88,6 +96,29 @@ class MazeView2D:
             pygame.quit()
         except Exception:
             pass
+
+    def regenerate_maze(self):
+        # Generate a new maze
+        self.__maze = Maze(maze_size=self.maze_size, has_loops=self.has_loops, num_portals=self.num_portals)
+
+        # Reset the entrance, goal, and robot
+        self.__entrance = np.zeros(2, dtype=int)
+        self.__goal = np.array(self.maze_size) - np.array((1, 1))
+        self.__robot = self.entrance
+
+        # Place the object at a new random position
+        self.__object = np.random.randint(0, high=self.maze_size, size=2)
+
+        # Re-draw everything
+        if self.__enable_render is True:
+            self.background.fill((255, 255, 255))
+            self.maze_layer.fill((0, 0, 0, 0,))
+            self.__draw_maze()
+            self.__draw_portals()
+            self.__draw_robot()
+            self.__draw_entrance()
+            self.__draw_goal()
+            self.__draw_object()
 
     def move_robot(self, dir):
         if dir not in self.__maze.COMPASS.keys():
@@ -212,6 +243,16 @@ class MazeView2D:
     def __draw_goal(self, colour=(150, 0, 0), transparency=235):
 
         self.__colour_cell(self.goal, colour=colour, transparency=transparency)
+
+    def __draw_object(self, colour=(0, 150, 0), transparency=255):
+        if self.__enable_render is False:
+            return
+        
+        x = int(self.__object[0] * self.CELL_W + self.CELL_W * 0.5 + 0.5)
+        y = int(self.__object[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
+        r = int(min(self.CELL_W, self.CELL_H)/5 + 0.5)
+
+        pygame.draw.circle(self.maze_layer, colour + (transparency,), (x, y), r)
 
     def __draw_portals(self, transparency=160):
 

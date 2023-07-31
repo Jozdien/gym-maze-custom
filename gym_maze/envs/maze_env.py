@@ -87,7 +87,7 @@ class MazeEnv(gym.Env):
 
         info = {}
 
-        return self.state, reward, done, info
+        return self.state, reward, done, False, info  # NOTE: Changed original code here to account for new step API, adding False parameter
 
     def reset(self):
         self.maze_view.reset_robot()
